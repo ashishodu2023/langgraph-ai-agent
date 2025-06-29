@@ -14,3 +14,7 @@ agent_env/
 # Output
 *.png
 EOF
+
+.env
+agent_env
+agent_envScriptsactivate
