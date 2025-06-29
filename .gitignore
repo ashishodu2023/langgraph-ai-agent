@@ -1,0 +1,16 @@
+cat <<EOF > .gitignore
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+agent_env/
+.env
+
+# VSCode
+.vscode/
+
+# Output
+*.png
+EOF
