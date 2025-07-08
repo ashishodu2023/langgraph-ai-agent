@@ -5,6 +5,7 @@ from tools import calculator, search
 from llm import llm
 from tools import calculator, search
 
+
 def classification_node(state: AgentState) -> AgentState:
     prompt = (
         f"What type of text is this (choose one: news, story, question, opinion, statement)?\n\n"
@@ -30,25 +31,39 @@ def entity_extraction_node(state: AgentState) -> AgentState:
     return state
 
 def summarization_node(state: AgentState) -> AgentState:
-    prompt = f"Summarize this content in one short sentence:\n\n{state['text']}"
+    prompt = (
+        f"Previous context: {state.get('memory', [])}\n\n"
+        f"Summarize this new input:\n\n{state['text']}"
+    )
     response = llm.invoke([HumanMessage(content=prompt)])
     state["summary"] = response.content.strip()
     return state
 
 
-
-
-
-
 def tool_use_node(state: AgentState) -> AgentState:
-    if state.get("classification") == "question":
-        result = search.invoke(state["text"])
-        state["summary"] = f"Search result: {result}"
-    elif state.get("classification") == "math":
-        result = calculator.invoke(state["text"])
-        state["summary"] = f"Calculator result: {result}"
-    else:
-        state["summary"] = "No tool used."
+    query = state.get("rewritten_query", "").strip() or state["text"].strip()
+    print("[Using Query]:", query)
+
+    result = search.invoke(query)
+    state["summary"] = f"Search result: {result}"
     return state
 
 
+
+def rewrite_query_node(state: AgentState) -> AgentState:
+    prompt = (
+        f"You are a web search assistant.\n"
+        f"Your job is to take the user’s question and turn it into a short, keyword-based Google-style search query.\n\n"
+        f"QUESTION:\n{state['text']}\n\n"
+        f"ONLY output the rewritten query — no explanation, no quotes, no formatting. Just the keywords."
+    )
+
+    response = llm.invoke([HumanMessage(content=prompt)])
+    rewritten = response.content.strip()
+
+    print("[Rewritten Query]:", rewritten)
+
+    return {
+        **state,
+        "rewritten_query": rewritten
+    }

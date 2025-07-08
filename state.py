@@ -5,3 +5,4 @@ class AgentState(TypedDict):
     classification:Optional[str]
     entities:Optional[List[str]]
     summary:Optional[str]
+    memory: Optional[List[str]] 
